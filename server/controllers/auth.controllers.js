@@ -5,6 +5,7 @@ const test = (req, res) => {
 };
 const config = require('../controllers/config')
 const jwt = require('jsonwebtoken');
+const redisClient = require('../helpers/redis')
 
 const registerUser = async (req, res)=> {
     try {
@@ -38,7 +39,7 @@ const registerUser = async (req, res)=> {
             confpassword:hashedPassword,
         })
 
-        const token = jwt.sign(user.email, config.JWT_SECRET);
+        const token = jwt.sign(user.email, config.JWT_SECRET, { expiresIn: '12h'});
         console.log(user, token);
         return res.status(201).json({user, token})
     } catch (error) {
@@ -70,12 +71,36 @@ const loginUser = async (req, res) => {
             })
         }
     } catch (error) {
-        
+        console.log(error);
+    }
+}
+
+const userProfile = async (req, res) => {
+   console.log(req.user);
+
+   res.status(200).json({
+    user: req.user
+   });
+}
+
+const logOutUser = async (req, res) => {
+    try {
+      const token = req.cookies.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
+      
+      redisClient.set(token, 'logout', 'EX', 60*60*12)
+
+      res.status(200).json({
+        message: 'Logged out Successfully!!'
+      })
+    } catch (error) {
+       console.log(error);
+       res.status(400).send(error.message); 
     }
 }
 
 module.exports = {
     test,
     registerUser,
-    loginUser
+    loginUser,
+    userProfile
 }
