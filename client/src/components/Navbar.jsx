@@ -17,9 +17,6 @@ function Navbar() {
           <NavLink to={"/"}>AI Chat</NavLink>
        </h2>
        <ul className="nav-links">
-       <li className="nav-logo">
-          <NavLink to={"/"}>Home</NavLink>
-        </li>
         <li>
           <NavLink className="btn" to={"/login"}>
             Login

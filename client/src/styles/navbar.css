@@ -26,6 +26,10 @@ header {
   .nav-logo a,
   .nav-links a {
     color: var(--bold-text-color);
+    font-size: large;
+    padding-right: 10px;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    font-size: x-large;
   }
   
   .nav-links {

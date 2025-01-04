@@ -1,9 +1,10 @@
 /* eslint-disable no-unused-vars */
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import "../styles/register.css"
 import axios from "axios";
 import toast from "react-hot-toast";
+import { userContext } from "../context/user.context";
 
 axios.defaults.baseURL = null;
 
@@ -16,19 +17,26 @@ function Register() {
     password: '', 
     confpassword: ''
   })
+  
+  const { setUser } =useContext(userContext);
+
   const registerUser = async (e) => {
     e.preventDefault();
     const {firstname, lastname, email, password, confpassword} = data
     try {
-      const {data} = await axios.post('/api/register', {
+      const {data} = axios.post('/api/register', {
         firstname, lastname, email, password, confpassword
-      })
-      if(data.error){
-        toast.error(data.error)
-      }else {
+      }).then((res)=> {
+        console.log(res.data)
+        localStorage.setItem('token', res.data.token)
+        setUser(res.data.user)
         setData({})
         toast.success('Registration Successful, Welcome to our Website!!')
         navigate('/login')
+      })
+
+      if(data.error){
+        toast.error(data.error)
       }
     } catch(error){
         console.log(error)

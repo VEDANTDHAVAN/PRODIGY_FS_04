@@ -1,9 +1,12 @@
 /* eslint-disable no-unused-vars */
-import React from 'react'
+import React, { useContext } from 'react'
+import { userContext } from '../context/user.context'
 
-function Home() {
+const Home = () => {
+
+  const {user} = useContext(userContext)
   return (
-    <div>Home</div>
+    <div>{JSON.stringify(user)}</div>
   )
 }
 
