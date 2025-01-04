@@ -1,5 +1,6 @@
 const config = require('../controllers/config');
 const jwt = require('jsonwebtoken');
+const redisClient = require('../helpers/redis');
 
 const authUser = async (req, res, next) => {
     try {
@@ -11,6 +12,14 @@ const authUser = async (req, res, next) => {
             return res.status(401).send({ error: 'Unauthorized User!' });
         }
 
+        const isBlackList = await redisClient.get(token);
+
+        if(isBlackList){
+            res.cookie('token', '');
+            return res.status(401).send({
+                error: 'Blacklisted User!!'
+            })
+        }
         // Verify the token
         const decoded = jwt.verify(token, config.JWT_SECRET);
         req.user = decoded;
@@ -23,6 +32,4 @@ const authUser = async (req, res, next) => {
     }
 };
 
-module.exports = {
-    authUser
-};
+module.exports = authUser

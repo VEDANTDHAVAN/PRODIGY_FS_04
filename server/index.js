@@ -3,8 +3,7 @@ const cors = require('cors');
 const {mongoose} = require('mongoose');
 const app = express();
 const config = require('./controllers/config.js');
-const cookieParser = require('cookie-parser')
-
+const cookieParser = require('cookie-parser');
 //database Connection
 mongoose.connect(config.mongoDbUrl2)
 .then(()=> console.log('Database Connected!!'))
@@ -19,4 +18,5 @@ app.use('/', require('./routes/auth.routes.js'))
 
 const port = 8000;
 app.use('/', require('./routes/auth.routes'))
+app.use('/projects', require('./routes/projects.routes.js'))
 app.listen(port, () => console.log(`Server is running on port ${port}`));

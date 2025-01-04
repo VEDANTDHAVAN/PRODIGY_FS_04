@@ -6,7 +6,7 @@ const test = (req, res) => {
 const config = require('../controllers/config')
 const jwt = require('jsonwebtoken');
 const redisClient = require('../helpers/redis')
-
+const expiry = { expiresIn: '12h'}
 const registerUser = async (req, res)=> {
     try {
         const {firstname, lastname, email, password, confpassword} = req.body;
@@ -39,8 +39,10 @@ const registerUser = async (req, res)=> {
             confpassword:hashedPassword,
         })
 
-        const token = jwt.sign(user.email, config.JWT_SECRET, { expiresIn: '12h'});
+        const token = jwt.sign(user.email, config.JWT_SECRET);
         console.log(user, token);
+        delete user._doc.password;
+        delete user._doc.confpassword;
         return res.status(201).json({user, token})
     } catch (error) {
         console.log(error)
@@ -62,6 +64,8 @@ const loginUser = async (req, res) => {
         if(match){
             //assign a JasonWebToken
             const token = jwt.sign(user.email, config.JWT_SECRET);
+            delete user._doc.password;
+            delete user._doc.confpassword;
             res.status(201).json({user, token})
         }
         if(!match){
@@ -83,10 +87,13 @@ const userProfile = async (req, res) => {
    });
 }
 
-const logOutUser = async (req, res) => {
+/*const logOutUser = async (req, res) => {
     try {
       const token = req.cookies.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
-      
+      if (!token) {
+        return res.status(400).json({ message: 'No token provided' });
+      }
+
       redisClient.set(token, 'logout', 'EX', 60*60*12)
 
       res.status(200).json({
@@ -96,11 +103,32 @@ const logOutUser = async (req, res) => {
        console.log(error);
        res.status(400).send(error.message); 
     }
-}
+}*/
+const logOutUser = async (req, res) => {
+    try {
+      const token = req.cookies.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
+      console.log('Extracted Token:', token);
+      if (!token) {
+        return res.status(400).json({ message: 'No token provided' });
+      }
+  
+      await redisClient.set(token, 'logout', 'EX', 60 * 60 * 12).then(()=> console.log('Test Key set Successfully!!'))
+       .catch((err) => console.error('Test redis Error:', err))
+  
+      res.status(200).json({
+        message: 'Logged out Successfully!!',
+      });
+    } catch (error) {
+      console.error('Logout Error:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  };
+  
 
 module.exports = {
     test,
     registerUser,
     loginUser,
-    userProfile
+    userProfile,
+    logOutUser
 }

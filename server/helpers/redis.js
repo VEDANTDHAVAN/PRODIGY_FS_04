@@ -10,6 +10,4 @@ redisClient.on('connect', () => {
     console.log("Redis Connected!!");
 })
 
-module.exports = {
-    redisClient
-}
+module.exports = redisClient
