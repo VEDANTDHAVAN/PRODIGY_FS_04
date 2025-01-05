@@ -1,5 +1,5 @@
 const User = require('../models/user');
-const {comparePassword, hashPassword} = require('../helpers/auth');
+const {comparePassword, hashPassword, getUsers} = require('../helpers/auth');
 const test = (req, res) => {
     res.json('test is working')
 };
@@ -123,6 +123,26 @@ const logOutUser = async (req, res) => {
       res.status(500).json({ message: 'Internal Server Error' });
     }
   };
+
+  const getAllUsers = async (req, res) => {
+    try {
+         
+        const {email} = req.body;
+        
+        const loggedInUser = await User.findOne({
+            email
+        })
+        console.log(loggedInUser)
+        const allUsers = await getUsers({userId: loggedInUser._id,});
+
+        return res.status(200).json({
+            users: allUsers
+        })
+    } catch (error) {
+        console.log(error)
+        return res.status(400).json("Server Error");
+    }
+  }
   
 
 module.exports = {
@@ -130,5 +150,6 @@ module.exports = {
     registerUser,
     loginUser,
     userProfile,
-    logOutUser
+    logOutUser,
+    getAllUsers
 }

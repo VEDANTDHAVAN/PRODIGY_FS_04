@@ -1,35 +1,7 @@
-/*const Project = require('../models/project');
-const projectService = require('../helpers/project.service');
-const {validationResult} = require('express-validator');
-const userModel = require('../models/user');
-
-const createProject = async (req, res) => {
-
-    const errors = validationResult(req);
-
-    if(!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
-
-    try {
-      const {name, email} = req.body;
-      const loggedInUser = await userModel.findOne({email});
-      const userId = loggedInUser._id;
-
-      const newProject = await projectService.createProject(name, userId);
-
-      res.status(201).json(newProject);
-    } catch (error) {
-        console.log(error)
-        res.status(400).send(error.message)
-    }
-}
-
-module.exports = {createProject}*/
 const User = require('../models/user')
 const jwt = require("jsonwebtoken");
 const Project = require("../models/project");
-const createProject = require("../helpers/project.service");
+const projectService = require("../helpers/project.service");
 const { validationResult } = require("express-validator");
 const userModel = require("../models/user");
 const config = require('../controllers/config')
@@ -39,30 +11,6 @@ const redisClient = require('../helpers/redis');
 
 // Middleware to authenticate user
 const authenticateUser = async (req, res, next) => {
-  /*try {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith("bearer ")) {
-      return res.status(401).json({ error: "Unauthorized: No token provided" });
-    }
-
-    const token = authHeader.split(" ")[1];
-
-    const decoded = jwt.verify(token, JWT_SECRET);
-
-    // Check if user exists
-    const user = await userModel.findById(decoded.id);
-    if (!user) {
-      return res.status(401).json({ error: "Unauthorized: User not found" });
-    }
-
-    // Attach user to request object
-    req.user = user;
-    next();
-  } catch (error) {
-    console.error(error);
-    res.status(401).json({ error: "Unauthorized: Invalid token" });
-  }*/
     try {
         const authHeader = req.headers.authorization;
 
@@ -117,7 +65,7 @@ const createdProject = async (req, res) => {
     const userId = req.user._id;
 
     // Create new project
-    const newProject = await createProject(name, userId);
+    const newProject = await projectService.createProject(name, userId);
 
     res.status(201).json(newProject);
   } catch (error) {
@@ -126,7 +74,74 @@ const createdProject = async (req, res) => {
   }
 };
 
+//controller to get all projects from Database
+const getAllProjects = async (req, res) => {
+   try {
+     
+     const loggedInUser = await userModel.findOne({
+       email: req.user.email
+     })
+
+     const userProjects = await projectService.getAllProjectsByUserId({
+      userId: loggedInUser._id
+     })
+
+     return res.status(200).json({projects: userProjects})
+
+   } catch (error) {
+     console.log(error)
+     res.status(400).json({error: error.message})
+   }
+};
+
+const addUserToProject = async (req, res) => {
+  const errors = validationResult(req);
+
+  if(!errors.isEmpty()){
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  try {
+    
+    const { projectId, users } = req.body;
+
+    const loggedInUser = await userModel.findOne({
+      email: req.user.email
+    })
+
+    const project = await projectService.addUsersToProject({
+      projectId, users, userId: loggedInUser._id
+    })
+
+    return res.status(200).json({  project,  })
+
+  } catch (error) {
+    console.log(error)
+    res.status(400).json({ error: error.message });
+  }
+}
+
+const getProjectById = async (req, res) => {
+   const {projectId} = req.params;
+
+   try {
+    
+     const project = await projectService.getProjectById({projectId});
+
+     return res.status(200).json({
+       project
+     })
+
+   } catch (error) {
+     console.log(error)
+     res.status(400).json({ error: error.message })
+   }
+}
+
 module.exports = {
   authenticateUser,
   createdProject,
+  getAllProjects,
+  addUserToProject,
+  getProjectById
 };
