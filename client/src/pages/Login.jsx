@@ -4,7 +4,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import "../styles/register.css";
 import axios from "axios";
 import toast from "react-hot-toast";
-axios.defaults.baseURL = null;
+axios.defaults.baseURL = "http://localhost:8000";
 function Login() {
   const [data, setData] = useState({
     email: '',
@@ -19,12 +19,15 @@ function Login() {
       if(data.error){
         toast.error(data.error)
       }else {
-        setData({})
+        const {token} = data;
+        localStorage.setItem("token", token);
+        setData({email: "", password: ""})
         toast.success('Login Successful, Welcome to our Website!!')
         navigate('/')
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
+      toast.error("An error occured during Login!!");
     }
   }
   return (

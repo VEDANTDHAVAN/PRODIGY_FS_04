@@ -6,7 +6,7 @@ const test = (req, res) => {
 const config = require('../controllers/config')
 const jwt = require('jsonwebtoken');
 const redisClient = require('../helpers/redis')
-const expiry = { expiresIn: '12h'}
+const expiry = { expiresIn: '2h'}
 const registerUser = async (req, res)=> {
     try {
         const {firstname, lastname, email, password, confpassword} = req.body;
@@ -39,7 +39,7 @@ const registerUser = async (req, res)=> {
             confpassword:hashedPassword,
         })
 
-        const token = jwt.sign(user.email, config.JWT_SECRET);
+        const token = jwt.sign({email: user.email}, config.JWT_SECRET, expiry);
         console.log(user, token);
         delete user._doc.password;
         delete user._doc.confpassword;
@@ -59,11 +59,12 @@ const loginUser = async (req, res) => {
                 error: 'No user found!!'
             })
         }
+
         //check if password matches
         const match = await comparePassword(password, user.password)
         if(match){
             //assign a JasonWebToken
-            const token = jwt.sign(user.email, config.JWT_SECRET);
+            const token = jwt.sign({email: user.email}, config.JWT_SECRET, expiry);
             delete user._doc.password;
             delete user._doc.confpassword;
             res.status(201).json({user, token})

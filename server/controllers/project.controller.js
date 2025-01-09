@@ -8,18 +8,16 @@ const config = require('../controllers/config')
 // Secret key for JWT (Store in environment variable)
 const JWT_SECRET = config.JWT_SECRET || "your_secret_key";
 const redisClient = require('../helpers/redis');
-
+const expiry = { expiresIn: '1h'};
 // Middleware to authenticate user
 const authenticateUser = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
-
-        if (!authHeader || !authHeader.startsWith("bearer ")) {
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
           return res.status(401).json({ error: "Authorization token missing or invalid" });
         }
     
         const token = authHeader.split(" ")[1];
-
         const isBlackList = await redisClient.get(token);
 
         if(isBlackList){
@@ -30,8 +28,7 @@ const authenticateUser = async (req, res, next) => {
         }
         // Verify the token
         const decoded = jwt.verify(token, config.JWT_SECRET);
-        console.log(decoded);
-        const user = await User.findOne({email: decoded});
+        const user = await User.findOne({email: decoded.email});
         if(!user){
             return res.status(401).json({ error: "User not Found!!"});
         }
@@ -41,8 +38,8 @@ const authenticateUser = async (req, res, next) => {
         // Proceed to the next middleware
         next();
     } catch (error) {
-        console.error(error);
-        return res.status(401).send({ error: 'Unauthorized User!' });
+        console.error("Authentication Error: ",error);
+        return res.status(500).json({error: "Internal Server Error!!"});
     }
 };
 
