@@ -3,9 +3,9 @@ const {comparePassword, hashPassword, getUsers} = require('../helpers/auth');
 const test = (req, res) => {
     res.json('test is working')
 };
-const config = require('../controllers/config')
+const config = require('../controllers/config');
 const jwt = require('jsonwebtoken');
-const redisClient = require('../helpers/redis')
+const redisClient = require('../helpers/redis');
 const expiry = { expiresIn: '2h'}
 const registerUser = async (req, res)=> {
     try {
@@ -128,23 +128,45 @@ const logOutUser = async (req, res) => {
   const getAllUsers = async (req, res) => {
     try {
          
-        const {email} = req.body;
-        
+        const {email} = req.query;
+        if(!email){
+            return res.status(500).json("Cannot get Email !!")
+        }
         const loggedInUser = await User.findOne({
             email
         })
-        console.log(loggedInUser)
-        const allUsers = await getUsers({userId: loggedInUser._id,});
+        if (!loggedInUser) {
+            return res.status(404).json({ error: "User not found." });
+          }     
 
+        console.log(loggedInUser)
+        const allUsers = await getUsers({userId: loggedInUser._id});
         return res.status(200).json({
             users: allUsers
         })
     } catch (error) {
-        console.log(error)
-        return res.status(400).json("Server Error");
+        console.error("Error in getAllUsers: ",error)
+        return res.status(500).json("Server Error");
     }
   }
-  
+
+const getUser = async (req, res) => {
+    try {
+        const token = req.headers.authorization.split('')[1];
+        if(!token){
+            return res.status(401).json({message: "Unauthorized: No token provided!!"})
+        }
+        
+        const users = await User.find(); 
+        res.status(200).json({ users });
+    } catch (error) {
+        console.error("Error fetching users:",{
+            message: error.message,
+            stack: error.stack,
+        });
+        res.status(500).json({ message: "Server Error in /api/all" });
+    }
+}
 
 module.exports = {
     test,
@@ -152,5 +174,6 @@ module.exports = {
     loginUser,
     userProfile,
     logOutUser,
-    getAllUsers
+    getAllUsers,
+    getUser
 }

@@ -15,7 +15,6 @@ app.use(cookieParser());
 app.use(express.urlencoded({extended: false}));
 
 app.use('/', require('./routes/auth.routes.js'))
-
 const port = 8000;
 app.use('/', require('./routes/auth.routes'))
 app.use('/projects', require('./routes/projects.routes.js'))

@@ -13,7 +13,7 @@ const expiry = { expiresIn: '1h'};
 const authenticateUser = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        if (!authHeader || !authHeader.startsWith("Bearer ") || !authHeader.startsWith("Bearer")) {
           return res.status(401).json({ error: "Authorization token missing or invalid" });
         }
     

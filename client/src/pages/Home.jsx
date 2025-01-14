@@ -37,26 +37,27 @@ const Home = () => {
   return (
   <div>
     <main className='p-4'>
-     <div>
-      <button className="btn" onClick={()=> setIsModalOpen(true)}>
-       <i class="ri-link ml-2"></i>
-        New Project
-      </button>
-      <div>    
+     <div className='down'>   
+      <h2><u> Your Projects </u></h2> 
       {
         project.map((project) => (
           <div key={project._id} 
-           onClick={()=>{ navigate(`/project`, {
+           onClick={()=>{ navigate(`/project/${project._id}`, {
             state: {project}
            })}}
           className='btn3'>
            <h2>{project.name}</h2>
-           <p className='prata-regular'><i className="ri-user-3-line"></i>Collaborators: {project.users.length}</p>
+           <p className='prata-regular'><i className="ri-user-3-line"></i>Collaborators: {project.users.length} </p>
            <i className="ri-link ml-2"></i>
           </div>
         ))
       }
       </div>
+      <div>
+      <button className="btn" onClick={()=> setIsModalOpen(true)}>
+       <i class="ri-link ml-2"></i>
+        New Project
+      </button>
      </div>
 
      {isModalOpen && (
